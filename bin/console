@@ -1,0 +1,94 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/thinger.php';
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use App\Service\SetupService;
+
+$application = new Application('Clima ETE Console', '0.1');
+
+$application->add(new class extends Command {
+    protected static $defaultName = 'setup:run';
+    protected function configure(): void
+    {
+        $this->setDescription('Executa migrações e cria primeiro admin.');
+        $this->addOption('admin-user', null, InputOption::VALUE_OPTIONAL, 'Usuário admin inicial');
+        $this->addOption('admin-pass', null, InputOption::VALUE_OPTIONAL, 'Senha admin inicial');
+    }
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            $pdo = getPdo();
+            $setup = new SetupService($pdo);
+            
+            // Executa migrações
+            $result = $setup->runMigrations();
+            $output->writeln($result['success'] ? '<info>' . $result['message'] . '</info>' : '<error>' . $result['message'] . '</error>');
+            
+            if (!$result['success']) {
+                return Command::FAILURE;
+            }
+
+            // Cria primeiro admin se fornecido
+            $user = (string)($input->getOption('admin-user') ?? '');
+            $pass = (string)($input->getOption('admin-pass') ?? '');
+            if ($user !== '' && $pass !== '') {
+                $adminResult = $setup->createFirstAdmin($user, $pass);
+                $output->writeln($adminResult['success'] ? '<info>' . $adminResult['message'] . '</info>' : '<error>' . $adminResult['message'] . '</error>');
+                if (!$adminResult['success']) {
+                    return Command::FAILURE;
+                }
+            }
+
+            $setup->markSetupDone();
+            $output->writeln('<info>Setup completo e marcado como realizado.</info>');
+            return Command::SUCCESS;
+        } catch (Throwable $e) {
+            $output->writeln('<error>Erro no setup: ' . $e->getMessage() . '</error>');
+            return Command::FAILURE;
+        }
+    }
+});
+
+$application->add(new class extends Command {
+    protected static $defaultName = 'sync:run';
+    protected function configure(): void
+    {
+        $this->setDescription('Executa sincronização com Thinger.io.');
+        $this->addOption('key', 'k', InputOption::VALUE_OPTIONAL, 'Chave de cron (opcional em CLI)');
+    }
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            $pdo = getPdo();
+            ensureSchema($pdo);
+            // CLI permite rodar sem chave; se fornecida, valida contra config/env
+            $provided = (string)($input->getOption('key') ?? '');
+            if ($provided !== '') {
+                $stmt = $pdo->prepare("SELECT valor FROM clima_config WHERE chave = :k LIMIT 1");
+                $stmt->execute([':k' => 'cron_key']);
+                $configured = (string)($stmt->fetchColumn() ?: getenv('CLIMA_CRON_KEY') ?: '');
+                if ($configured !== '' && $provided !== $configured) {
+                    $output->writeln('<error>Chave inválida.</error>');
+                    return Command::FAILURE;
+                }
+            }
+            $result = syncWithThinger($pdo);
+            $output->writeln(($result['status'] === 'success') ? '<info>'.$result['message'].'</info>' : '<error>'.$result['message'].'</error>');
+            return ($result['status'] === 'success') ? Command::SUCCESS : Command::FAILURE;
+        } catch (Throwable $e) {
+            $output->writeln('<error>Erro na sincronização: ' . $e->getMessage() . '</error>');
+            return Command::FAILURE;
+        }
+    }
+});
+
+$application->run();
