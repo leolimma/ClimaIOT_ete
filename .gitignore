@@ -13,6 +13,18 @@
 # Ambiente
 .env
 .env.local
+
+# Bin - ignorar tudo exceto essenciais
+bin/*
+!bin/reset_admin.php
+!bin/console
+
+# Arquivos de teste/debug na raiz
+check_*.php
+test_*.php
+debug_*.php
+convert_to_jpg.php
+
 docs/
 *.md
 !README.md
