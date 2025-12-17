@@ -90,7 +90,8 @@ class PublicController
             default => 'Todos os dados'
         };
 
-        $html = $this->buildPublicPdfHtml($records, $periodLabel);
+        $rows = $this->buildPdfRows($records);
+        $html = $this->buildPublicPdfHtml($rows, $periodLabel, count($records));
 
         $response = new Response();
         $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8')
@@ -100,11 +101,8 @@ class PublicController
         return $response;
     }
 
-    private function buildPublicPdfHtml(array $records, string $periodLabel): string
+    private function buildPdfRows(array $records): string
     {
-        $emisDate = date('d/m/Y H:i:s');
-        $totalRecords = count($records);
-
         $rows = '';
         foreach ($records as $row) {
             $date = date('d/m/Y H:i', strtotime($row['data_registro']));
@@ -120,41 +118,34 @@ class PublicController
                 $this->e($row['chuva_status'] ?? '')
             );
         }
+        return $rows;
+    }
+
+    private function buildPublicPdfHtml(string $rows, string $periodLabel, int $totalRecords): string
+    {
+        $emisDate = date('d/m/Y H:i:s');
+        $styles = $this->getPdfStyles();
 
         return <<<HTML
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Histórico de Clima - $periodLabel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Clima - $periodLabel</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #333; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        h1 { font-size: 24px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
-        h2 { font-size: 16px; margin: 0; color: #666; }
-        .info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
-        .info-item { font-size: 13px; }
-        .info-label { font-weight: bold; color: #555; margin-bottom: 3px; }
-        .info-value { color: #333; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
-        thead { background: #2c3e50; color: white; }
-        th { padding: 12px; text-align: left; font-weight: bold; border: 1px solid #34495e; }
-        td { padding: 10px 12px; border: 1px solid #ddd; }
-        tbody tr:nth-child(even) { background: #f9f9f9; }
-        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #666; }
-        @media print {
-            body { background: white; }
-            .container { box-shadow: none; }
-        }
+        $styles
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Histórico de Monitoramento Ambiental</h1>
-            <h2>ETE Pedro Leão Leal - Sistema Climático</h2>
+            <img src="/assets/img/agradece.jpg" alt="Logo" class="logo">
+            <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
+            <h2>ESPAÇO CRIA</h2>
+            <h2>PROF. COORDENADOR Francisco Leonardo de Lima</h2>
         </div>
+
         <div class="info">
             <div class="info-item">
                 <div class="info-label">Período:</div>
@@ -173,28 +164,29 @@ class PublicController
                 <div class="info-value">Relatório Público</div>
             </div>
         </div>
-        <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-bottom: 15px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data/Hora</th>
+                    <th>Temp(°C)</th>
+                    <th>Umid(%)</th>
+                    <th>Pressão(hPa)</th>
+                    <th>UV</th>
+                    <th>Gas(KΩ)</th>
+                    <th>Chuva</th>
+                </tr>
+            </thead>
+            <tbody>
+                $rows
+            </tbody>
+        </table>
+
+        <button class="print-button" onclick="window.print()">
             🖨️ Imprimir / Salvar como PDF
         </button>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Data/Hora</th>
-                        <th>Temp (°C)</th>
-                        <th>Umidade (%)</th>
-                        <th>Pressão (hPa)</th>
-                        <th>UV</th>
-                        <th>Gas (KΩ)</th>
-                        <th>Status Chuva</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    $rows
-                </tbody>
-            </table>
-        </div>
+
         <div class="footer">
             <p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
         </div>
@@ -202,6 +194,13 @@ class PublicController
 </body>
 </html>
 HTML;
+    }
+
+    private function getPdfStyles(): string
+    {
+        return <<<CSS
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#333;background:#f5f5f5}.container{max-width:900px;margin:0 auto;padding:20px;background:#fff}.header{text-align:center;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid #333}.logo{max-width:200px;height:auto;margin:0 auto 15px;display:block}h1{font-size:20px;margin:10px 0;text-transform:uppercase;letter-spacing:1px}h2{font-size:14px;margin:5px 0;font-weight:normal}.info{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:20px 0;padding:15px;background:#f9f9f9;border-radius:5px}.info-item{font-size:13px}.info-label{font-weight:bold;color:#555;margin-bottom:3px}.info-value{color:#333;font-weight:600}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:12px}thead{background:#2c3e50;color:#fff}th{padding:12px;text-align:left;font-weight:bold;border:1px solid #34495e}td{padding:10px 12px;border:1px solid #ddd}tbody tr:nth-child(even){background:#f9f9f9}tbody tr:hover{background:#f0f0f0}.footer{margin-top:30px;padding-top:15px;border-top:1px solid #ddd;text-align:center;font-size:12px;color:#666}.print-button{display:block;margin:20px auto;padding:12px 30px;background:#3498db;color:#fff;border:0;border-radius:5px;font-size:14px;font-weight:bold;cursor:pointer;transition:background .3s}.print-button:hover{background:#2980b9}@media print{body{background:#fff}.container{padding:0;margin:0;max-width:100%}.print-button{display:none}.header{page-break-after:avoid;page-break-inside:avoid}.info{page-break-after:avoid;page-break-inside:avoid}table{page-break-before:avoid;margin-top:10px}thead{display:table-header-group}tr{page-break-inside:avoid}}
+CSS;
     }
 
     private function renderHome(array $data): string

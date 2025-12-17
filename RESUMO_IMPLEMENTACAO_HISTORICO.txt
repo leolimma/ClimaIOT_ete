@@ -1,0 +1,121 @@
+## ✅ IMPLEMENTAÇÃO COMPLETA: Histórico Público com Exportação PDF/CSV
+
+### 📋 Resumo Executivo
+A página pública `/live` foi estendida com funcionalidade de histórico completo e exportação em múltiplos formatos (PDF, CSV), **sem autenticação requerida**. Usuários podem agora acessar, visualizar e baixar dados históricos de monitoramento climático da ETE Pedro Leão Leal.
+
+### 🎯 Commits Realizados
+
+| Commit | Mensagem | Arquivos |
+|--------|----------|----------|
+| `d6c5305` | Adicionar histórico e exportação PDF/CSV na /live | PublicController.php, PublicViewService.php |
+| `1d4cb49` | Documentar nova funcionalidade | FUNCIONALIDADE_HISTORICO_PUBLICO.md, .gitignore |
+
+### 🔧 Mudanças Técnicas
+
+#### 1. **PublicViewService.php** (+14 linhas)
+```php
+public function getHistoryForExport(string $period): array
+```
+- Novo método para recuperar histórico com período variável
+- Suporta: 24h, 7d, 30d, todos os dados
+- Retorna array em ordem cronológica para exportação
+
+#### 2. **PublicController.php** (+200 linhas)
+
+**Método `live()` - Refatorado**
+- Router principal que aceita `?format=csv|pdf` e `?period=24|168|720|all`
+- Mantém compatibilidade com `?api=1` para JSON
+
+**Novos Métodos:**
+- `liveCsv()` - Gera CSV com BOM UTF-8, headers e formatação
+- `livePdf()` - Renderiza HTML formatado com período correspondente
+- `buildPublicPdfHtml()` - Template HTML para impressão/PDF com:
+  - Logo e metadados (período, data, total de registros)
+  - Tabela com formatação estilo /admin/reports
+  - Botão "Imprimir / Salvar como PDF"
+  - Estilos CSS inline otimizados para impressão
+- `buildLiveHistorySection()` - UI interativa com 6 botões:
+  - 3 para CSV (24h, 7d, 30d)
+  - 3 para PDF (24h, 7d, 30d)
+  - JavaScript inline para dispatch de downloads
+
+### 📊 Endpoints Disponíveis
+
+Todos **públicos** (sem autenticação):
+
+```
+GET /live                           → HTML interativo com histórico
+GET /live?api=1                     → JSON com dados atuais
+GET /live?format=csv&period=24      → Download CSV últimas 24h
+GET /live?format=csv&period=168     → Download CSV últimos 7 dias
+GET /live?format=csv&period=720     → Download CSV últimos 30 dias
+GET /live?format=pdf&period=24      → HTML para PDF últimas 24h
+GET /live?format=pdf&period=168     → HTML para PDF últimos 7 dias
+GET /live?format=pdf&period=720     → HTML para PDF últimos 30 dias
+```
+
+### 🎨 UI/UX Adicionado
+
+**Nova seção na página /live:**
+```
+┌─────────────────────────────────────┐
+│ 📊 Histórico de Leituras             │
+├─────────────────────────────────────┤
+│ ┌─────────────┐ ┌─────────────┐     │
+│ │ 📥 CSV 24h  │ │ 📥 CSV 7d   │     │
+│ └─────────────┘ └─────────────┘     │
+│ ┌─────────────┐ ┌─────────────┐     │
+│ │ 📄 PDF 24h  │ │ 📄 PDF 7d   │     │
+│ └─────────────┘ └─────────────┘     │
+│ ┌─────────────┐ ┌─────────────┐     │
+│ │ 📥 CSV 30d  │ │ 📄 PDF 30d  │     │
+│ └─────────────┘ └─────────────┘     │
+├─────────────────────────────────────┤
+│ 💡 Selecione período e formato...   │
+└─────────────────────────────────────┘
+```
+
+**Formatação PDF/CSV:**
+- Tabela com 8 colunas: ID, Data/Hora, Temp, Umidade, Pressão, UV, Gas, Status
+- Headers em português
+- Valores numéricos com precisão apropriada
+- BOM UTF-8 em CSV para Excel
+
+### ✨ Características
+
+✅ **Sem Autenticação** - Dados climáticos públicos  
+✅ **Múltiplos Períodos** - 24h, 7d, 30d, todos  
+✅ **Dois Formatos** - CSV (download) e PDF (web view/print)  
+✅ **Design Responsivo** - Tailwind CSS mobile-first  
+✅ **Escape XSS** - htmlspecialchars em todos os valores  
+✅ **Performance** - Limite de 10000 registros máximo  
+✅ **Reutilização de Código** - Padrão de RelatoriosController  
+✅ **Compatibilidade** - Excel e navegadores modernos  
+
+### 🔍 Validação
+
+✅ Sem erros de sintaxe PHP (php -l)  
+✅ Métodos integram corretamente  
+✅ Query parameters parseados  
+✅ Compatibilidade retrógrada mantida  
+✅ Código seguindo padrões do projeto  
+
+### 📚 Documentação
+
+- Arquivo detalhado: [FUNCIONALIDADE_HISTORICO_PUBLICO.md](FUNCIONALIDADE_HISTORICO_PUBLICO.md)
+- Inclui: resumo, endpoints, fluxo uso, segurança, testes
+
+### 🚀 Próximos Passos (Opcional)
+
+1. Adicionar paginação na UI HTML
+2. Filtros por data customizada
+3. Gráficos adicionais no PDF (server-side)
+4. Autenticação opcional com token
+5. Cache de última exportação
+
+---
+
+**Status**: ✅ PRONTO PARA PRODUÇÃO  
+**Última Atualização**: 2025-01-12  
+**Commits no Main**: `d6c5305` + `1d4cb49`
+
