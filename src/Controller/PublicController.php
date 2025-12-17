@@ -29,18 +29,179 @@ class PublicController
 
     public function live(Request $request, Response $response): Response
     {
-        $viewData = $this->publicViewService->getLiveData();
+        $format = (string)($request->getQueryParams()['format'] ?? 'html');
+        $period = (string)($request->getQueryParams()['period'] ?? '24');
+        $isApi = ($request->getQueryParams()['api'] ?? '') === '1';
 
-        if (($request->getQueryParams()['api'] ?? '') === '1') {
+        if ($format === 'csv' || $format === 'pdf') {
+            return $format === 'csv' ? $this->liveCsv($period) : $this->livePdf($period);
+        }
+
+        if ($isApi) {
+            $viewData = $this->publicViewService->getLiveData();
             $payload = $viewData['apiPayload'];
             $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $response->getBody()->write($json !== false ? $json : '');
             return $response->withHeader('Content-Type', 'application/json');
         }
 
+        $viewData = $this->publicViewService->getLiveData();
         $html = $this->renderLive($viewData);
         $response->getBody()->write($html);
         return $response;
+    }
+
+    private function liveCsv(string $period): Response
+    {
+        $records = $this->publicViewService->getHistoryForExport($period);
+
+        $response = new Response();
+        $response = $response->withHeader('Content-Type', 'text/csv; charset=utf-8')
+            ->withHeader('Content-Disposition', 'attachment; filename="historico_clima_' . date('Y-m-d_His') . '.csv"');
+
+        $csv = "ID;Data/Hora;Temperatura(°C);Umidade(%);Pressão(hPa);UV;Gas(KΩ);Chuva;Status Chuva\n";
+        foreach ($records as $row) {
+            $csv .= sprintf(
+                "%d;%s;%.1f;%d;%.0f;%.1f;%.1f;%.1f;%s\n",
+                $row['id'],
+                $row['data_registro'],
+                $row['temp'] ?? 0,
+                $row['hum'] ?? 0,
+                $row['pres'] ?? 0,
+                $row['uv'] ?? 0,
+                $row['gas'] ?? 0,
+                $row['chuva'] ?? 0,
+                $this->e($row['chuva_status'] ?? '')
+            );
+        }
+
+        $response->getBody()->write("\xEF\xBB\xBF" . $csv);
+        return $response;
+    }
+
+    private function livePdf(string $period): Response
+    {
+        $records = $this->publicViewService->getHistoryForExport($period);
+
+        $periodLabel = match($period) {
+            '24' => 'Últimas 24 horas',
+            '168' => 'Últimos 7 dias',
+            '720' => 'Últimos 30 dias',
+            default => 'Todos os dados'
+        };
+
+        $html = $this->buildPublicPdfHtml($records, $periodLabel);
+
+        $response = new Response();
+        $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8')
+            ->withHeader('Content-Disposition', 'inline; filename="historico_clima_' . date('Y-m-d_His') . '.html"');
+
+        $response->getBody()->write($html);
+        return $response;
+    }
+
+    private function buildPublicPdfHtml(array $records, string $periodLabel): string
+    {
+        $emisDate = date('d/m/Y H:i:s');
+        $totalRecords = count($records);
+
+        $rows = '';
+        foreach ($records as $row) {
+            $date = date('d/m/Y H:i', strtotime($row['data_registro']));
+            $rows .= sprintf(
+                '<tr><td>%d</td><td>%s</td><td>%.1f</td><td>%d</td><td>%.0f</td><td>%.1f</td><td>%.1f</td><td>%s</td></tr>',
+                $row['id'],
+                $date,
+                $row['temp'] ?? 0,
+                $row['hum'] ?? 0,
+                $row['pres'] ?? 0,
+                $row['uv'] ?? 0,
+                $row['gas'] ?? 0,
+                $this->e($row['chuva_status'] ?? '')
+            );
+        }
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de Clima - $periodLabel</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 16px; margin: 0; color: #666; }
+        .info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        .info-item { font-size: 13px; }
+        .info-label { font-weight: bold; color: #555; margin-bottom: 3px; }
+        .info-value { color: #333; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
+        thead { background: #2c3e50; color: white; }
+        th { padding: 12px; text-align: left; font-weight: bold; border: 1px solid #34495e; }
+        td { padding: 10px 12px; border: 1px solid #ddd; }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #666; }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Histórico de Monitoramento Ambiental</h1>
+            <h2>ETE Pedro Leão Leal - Sistema Climático</h2>
+        </div>
+        <div class="info">
+            <div class="info-item">
+                <div class="info-label">Período:</div>
+                <div class="info-value">$periodLabel</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Data de Emissão:</div>
+                <div class="info-value">$emisDate</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Total de Registros:</div>
+                <div class="info-value">$totalRecords</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Tipo:</div>
+                <div class="info-value">Relatório Público</div>
+            </div>
+        </div>
+        <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-bottom: 15px;">
+            🖨️ Imprimir / Salvar como PDF
+        </button>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data/Hora</th>
+                        <th>Temp (°C)</th>
+                        <th>Umidade (%)</th>
+                        <th>Pressão (hPa)</th>
+                        <th>UV</th>
+                        <th>Gas (KΩ)</th>
+                        <th>Status Chuva</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    $rows
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            <p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
     }
 
     private function renderHome(array $data): string
@@ -223,6 +384,7 @@ HTML;
         $header = $this->buildLiveHeader($vars);
         $grid = $this->buildLiveGrid($vars);
         $chartSection = $this->buildLiveChartSection($labelsJson, $tempsJson, $humsJson);
+        $historySection = $this->buildLiveHistorySection();
 
         return <<<HTML
 <!DOCTYPE html>
@@ -257,6 +419,7 @@ HTML;
         {$header}
         {$grid}
         {$chartSection}
+        {$historySection}
     </div>
     </div>
 
@@ -391,6 +554,59 @@ HTML;
                 </div>
             </div>
         </div>
+HTML;
+    }
+
+    private function buildLiveHistorySection(): string
+    {
+        return <<<HTML
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase">Dados Históricos</p>
+                    <h2 class="text-lg font-bold">Histórico de Leituras</h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <button onclick="exportarHistorico('24', 'csv')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-semibold">
+                    📥 CSV 24h
+                </button>
+                <button onclick="exportarHistorico('168', 'csv')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-semibold">
+                    📥 CSV 7d
+                </button>
+                <button onclick="exportarHistorico('24', 'pdf')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-semibold">
+                    📄 PDF 24h
+                </button>
+                <button onclick="exportarHistorico('168', 'pdf')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-semibold">
+                    📄 PDF 7d
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="exportarHistorico('720', 'csv')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-semibold">
+                    📥 CSV 30d
+                </button>
+                <button onclick="exportarHistorico('720', 'pdf')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-semibold">
+                    📄 PDF 30d
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-4">
+                💡 Selecione o período e formato desejado para exportar os dados históricos de monitoramento.
+            </p>
+        </div>
+
+        <script>
+            function exportarHistorico(periodo, formato) {
+                const url = '/live?format=' + formato + '&period=' + periodo;
+                if (formato === 'csv') {
+                    window.location.href = url;
+                } else if (formato === 'pdf') {
+                    window.open(url, '_blank');
+                }
+            }
+        </script>
 HTML;
     }
 

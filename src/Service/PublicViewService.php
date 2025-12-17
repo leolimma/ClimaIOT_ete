@@ -153,6 +153,21 @@ class PublicViewService
         ];
     }
 
+    public function getHistoryForExport(string $period = '24'): array
+    {
+        $limit = 24;
+        if ($period === 'all') {
+            $limit = 10000;
+        } elseif ($period === '168') {
+            $limit = 168;
+        } elseif ($period === '720') {
+            $limit = 720;
+        }
+
+        $records = $this->historicsRepository->getLatest($limit);
+        return array_reverse($records);
+    }
+
     private function toNumeric(mixed $value): ?float
     {
         return is_numeric($value) ? (float)$value : null;
