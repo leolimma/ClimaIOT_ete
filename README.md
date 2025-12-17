@@ -1,207 +1,275 @@
-# Sistema de Monitoramento Climático - ETE Pedro Leão Leal
+# Estação Climática ETE (ClimaIOT) - V3
 
-## Versão 3 (V3)
+Aplicação PHP (Slim 4) para coletar, persistir e visualizar leituras da estação climática integrada ao Thinger.io, com painel administrativo, RBAC, relatórios em PDF e rotinas de sincronização automática.
 
-Sistema completo de monitoramento ambiental integrado com Thinger.io, desenvolvido em PHP com Slim Framework 4.
-
-### 🎯 Features Principais
+## 🎯 Features Principais
 
 - **Dashboard em Tempo Real**: Visualização de dados climáticos ao vivo
 - **Sistema de Usuários**: Autenticação com roles (admin/user) e RBAC
 - **Relatórios em PDF**: Exportação de dados com JsPDF e AutoTable
 - **Sincronização com Thinger.io**: Integração automática de dados IoT
 - **Painel Administrativo**: Gerenciamento de configurações, usuários e sincronização
+- **Recuperação de Senha**: Fluxo seguro via e-mail
 - **API REST**: Endpoints para acesso aos dados
+- **Logging**: Sistema de logs estruturado
 
-### 📋 Requisitos
+## 📋 Requisitos
 
-- PHP 8.2+
-- MySQL 5.7+
+- PHP 8.1+ com `pdo_mysql`, `mbstring`, `openssl`
+- MySQL/MariaDB 5.7+
 - Composer
-- Node.js (opcional, para build assets)
+- Servidor web apontando para `public/`
 
-### 🚀 Instalação
-
-#### 1. Clonar o repositório
+## 🚀 Instalação Rápida
 
 ```bash
-git clone https://github.com/leolimma/ClimaIOT.git
-cd ClimaIOT
+# 1) Clonar e instalar dependências
+git clone https://github.com/leolimma/ClimaIOT.git clima_ete
+cd clima_ete
+composer install --no-dev --optimize-autoloader
+
+# 2) Criar arquivo .env (veja Configuração abaixo)
+cp .env.example .env
+# Editar .env com suas credenciais
+
+# 3) Acessar setup (primeira vez)
+php -S localhost:8000 -t public
+# Acesse http://localhost:8000/setup
 ```
 
-#### 2. Configurar variáveis de ambiente
+## ⚙️ Configuração (.env)
 
-Criar arquivo `.env` na raiz:
+Crie `.env` na raiz com, no mínimo:
 
 ```env
 DB_HOST=localhost
 DB_NAME=clima_ete
-DB_USER=root
-DB_PASS=sua_senha
+DB_USER=usuario
+DB_PASS=senha
 DB_CHARSET=utf8mb4
 
+# Thinger.io
 THINGER_USER=seu_usuario
-THINGER_DEVICE=seu_device
-THINGER_RESOURCE=seu_resource
-THINGER_TOKEN=seu_token
+THINGER_DEVICE=seu_dispositivo
+THINGER_RESOURCE=seu/recurso
+THINGER_TOKEN=Bearer SEU_TOKEN
+
+# Cron (opcional)
+CLIMA_CRON_KEY=uma_chave_segura
 ```
 
-#### 3. Instalar dependências
+**Nota:** O sistema agora usa `.env` (arquivo `.env.example` está disponível). O arquivo `db_config.php` é descontinuado.
 
-```bash
-composer install
-```
-
-#### 4. Provisionar banco de dados
-
-Via web:
-```
-http://localhost:8000/setup
-```
-
-Ou CLI:
-```powershell
-php setup.php
-```
-
-#### 5. Iniciar servidor de desenvolvimento
-
-```bash
-php -S localhost:8000 -t public
-```
-
-Acesse: `http://localhost:8000`
-
-### 🔑 Login Padrão
+## 🔑 Login Padrão
 
 Após setup:
 - **Usuário**: admin
 - **Senha**: admin (alterar na primeira entrada)
 
-### 📂 Estrutura do Projeto
+Para resetar admin via CLI:
+```powershell
+php -r "require 'bin/reset_admin.php';"
+```
+
+## 📂 Estrutura do Projeto
 
 ```
 clima_ete_novo/
-├── bin/                          # Scripts CLI
-│   └── reset_admin.php          # Reset de senha admin
+├── bin/
+│   ├── reset_admin.php          # Reset de senha admin (CLI)
+│   └── console                  # Console Symfony
 ├── docs/                        # Documentação
 ├── lib/                         # Bibliotecas PHP
-│   ├── db.php                   # Conexão PDO
-│   ├── schema.php               # Schema do banco
+│   ├── db.php                   # Conexão PDO centralizada
+│   ├── schema.php               # Schema do banco e migrações
 │   └── thinger.php              # API Thinger.io
 ├── migrations/                  # Migrações do banco
-├── public/                      # Raiz web
-│   ├── index.php               # Entry point Slim
-│   └── assets/                 # Imagens e recursos
+├── public/
+│   ├── index.php               # Entry point Slim Framework
+│   ├── php.ini                 # Configurações PHP (sessões, etc)
+│   └── assets/                 # Imagens e recursos (Tailwind, Lucide)
 ├── src/
-│   ├── Controller/             # Controladores
+│   ├── Controller/             # Controladores Slim
 │   │   ├── AdminController.php
 │   │   ├── AuthController.php
+│   │   ├── PublicController.php
 │   │   ├── RelatoriosController.php
-│   │   └── PublicController.php
-│   ├── Middleware/             # Middlewares
+│   │   ├── SetupController.php
+│   │   └── CronController.php
+│   ├── Middleware/             # Middlewares PSR-15
 │   │   ├── SessionMiddleware.php
 │   │   ├── AuthMiddleware.php
 │   │   └── CsrfMiddleware.php
-│   ├── Repository/             # Data access
+│   ├── Repository/             # Data access layer
+│   │   ├── UserRepository.php
+│   │   ├── ConfigRepository.php
+│   │   ├── HistoricsRepository.php
+│   │   └── PasswordResetRepository.php
 │   ├── Service/                # Business logic
-│   └── Settings/               # Configurações
-└── var/                        # Logs e cache
+│   │   ├── AuthService.php
+│   │   ├── ConfigService.php
+│   │   ├── SyncService.php
+│   │   ├── PublicViewService.php
+│   │   ├── MetricService.php
+│   │   ├── PasswordResetService.php
+│   │   └── SetupService.php
+│   └── Settings/               # Configurações DI
+└── var/
+    └── log/                    # Logs do sistema
 ```
 
-### 🔐 Segurança
+## 🔐 Segurança
 
-- **Autenticação**: Session-based com hash de senha
-- **CSRF**: Token CSRF em todos os POST
+- **Autenticação**: Session-based com hash de senha (`password_hash`)
+- **CSRF**: Token CSRF em POST administrativos (exceto login)
 - **SQL Injection**: Prepared statements com PDO
 - **XSS**: Sanitização com `htmlspecialchars()`
-- **RBAC**: Controle de acesso por role (admin/user)
+- **RBAC**: Controle de acesso por role (`admin`/`user`)
+- **Throttle**: Limite de tentativas de login com bloqueio temporal
+- **Sessões**: Configuração segura em `public/php.ini`
 
-### 🗄️ Banco de Dados
+## 🗄️ Banco de Dados
 
-Tabelas principais:
+Tabelas:
 
-- `clima_historico`: Leituras históricas de sensores
-- `clima_config`: Configurações do sistema
-- `clima_users`: Usuários e autenticação
-- `clima_password_resets`: Token de reset de senha
+- `clima_historico`: Leituras históricas de sensores (id, data_registro, temp, hum, pres, uv, gas, chuva, chuva_status)
+- `clima_config`: Configurações do sistema (chave, valor)
+- `clima_users`: Usuários e autenticação (id, username, password, email, role)
+- `clima_password_resets`: Tokens de reset de senha
 
-### 🔄 Fluxo de Sincronização
+Esquema criado/atualizado automaticamente via `ensureSchema()` em `lib/schema.php`.
 
-1. **Manual**: Via dashboard admin → "Sincronizar Agora"
-2. **Automático**: Via cron job
-   ```bash
-   curl "https://seu-site/cron/sync?key=SUA_CHAVE_CRON"
-   ```
-   Ou CLI:
-   ```powershell
-   php sync_cron.php -k=SUA_CHAVE_CRON
-   ```
+## 🔄 Fluxo de Sincronização
 
-### 📊 Métricas Monitoradas
+### Manual
+- Dashboard admin: `POST /admin/sync`
 
-- **Temperatura** (°C)
-- **Umidade** (%)
+### Automático (Cron)
+```bash
+# Via web
+curl "https://seu-site/cron/sync?key=SUA_CHAVE_CRON"
+
+# Via CLI (Windows)
+php sync_cron.php -k=SUA_CHAVE_CRON
+
+# Ou Python/Node
+node -e "require('http').get('http://localhost:8000/cron/sync?key=...')"
+```
+
+Integração: `fetchThingerData()` + `persistThingerPayload()` normalizam tipos e calculam `chuva_status`.
+
+## 📊 Métricas Monitoradas
+
+- **Temperatura** (°C) - Classificação: Congelante → Ótima → Quente
+- **Umidade** (%) - Classificação: Muito Seco → Normal → Muito Úmido
 - **Pressão** (hPa)
-- **Radiação UV** (índice)
+- **Radiação UV** (índice) - Classificação: Baixa → Alta → Extrema
 - **Qualidade do Ar** (ppm)
-- **Precipitação** (mm)
+- **Precipitação** (mm) - Status: Seco → Garoa → Chovendo
 
-### 📋 Relatórios
+Formatação via `MetricService` com cores Tailwind.
 
-Exportação disponível em:
-- **CSV**: Download direto
-- **PDF**: Com formatação profissional
+## 📋 Relatórios
 
 Acesso: `/admin/reports`
 
-### 👥 Gerenciamento de Usuários
+Formatos:
+- **HTML**: Visualização no painel com tabela paginada
+- **CSV**: Download direto
+- **PDF**: Geração com JsPDF + AutoTable (botão no modal)
 
-- Criar novo usuário (admin)
-- Alterar senha própria (todos)
-- Deletar usuário (admin)
-- Recuperação de senha (público)
+Filtros:
+- Período (hoje, semana, mês, ano, customizado)
+- Emitente (nome do usuário que gera)
 
-### 🛠️ Middlewares
+## 👥 Gerenciamento de Usuários
+
+Acesso: `/admin` (admin only)
+
+Ações:
+- Criar novo usuário (`/admin/users/create`)
+- Alterar senha própria (`/admin/profile`)
+- Deletar usuário (`/admin/users/delete/{id}`)
+- Recuperar senha (`/admin/password/forgot` - público)
+
+RBAC:
+- **admin**: Acesso total, gerenciar usuários, relatórios, configurações
+- **user**: Acesso limitado (ver dados, alterar própria senha, relatórios)
+
+## 🛠️ Middleware Stack
 
 Ordem de execução:
-1. `SessionMiddleware` - Inicializa sessão
-2. `AuthMiddleware` - Valida autenticação
-3. `CsrfMiddleware` - Valida CSRF (exceto login)
 
-### 📡 Integração Thinger.io
+1. `SessionMiddleware` - Inicializa sessão PHP
+2. `AuthMiddleware` - Valida autenticação (redirect para `/admin/login`)
+3. `CsrfMiddleware` - Valida CSRF em POST (exceto `/admin/login`)
 
-Configurar em `/admin/settings`:
+## 📡 Integração Thinger.io
+
+Configurar via Dashboard Admin: `/admin/settings`
+
+Campos:
 - **Usuário**: Seu usuário Thinger
 - **Device**: ID do device
-- **Resource**: Caminho do resource
+- **Resource**: Caminho do resource (ex.: `clima/actual`)
 - **Token**: Bearer token ou token simples
 
-### 🐛 Debug
+Validação automática ao salvar.
 
-Logs disponíveis em: `var/log/`
+## 🖥️ Deploy
 
-```php
-error_log('Mensagem de debug');
+### Estrutura
+- Docroot web deve apontar para `public/`
+- Backend roda em `public/index.php`
+
+### Passos
+1. Instalar dependências: `composer install --no-dev --optimize-autoloader`
+2. Criar `.env` com credenciais
+3. Executar setup: `GET /setup` (primeira vez)
+4. Configurar Thinger.io
+5. Agendar cron para sincronização
+6. Verificar logs em `var/log/`
+
+### Sessões em Ambientes Compartilhados
+Se `/tmp` não é adequado (cPanel, HostGator), crie diretório dedicado:
+
+```bash
+mkdir -p /home/usuario/tmp/clima_sessions
+chmod 700 /home/usuario/tmp/clima_sessions
 ```
 
-### 📝 Changelog
+Configure em `public/php.ini`:
+```ini
+session.save_handler = files
+session.save_path = "/home/usuario/tmp/clima_sessions"
+session.cookie_secure = 1
+session.cookie_httponly = 1
+session.cookie_samesite = "Lax"
+```
 
-#### V3
-- Sistema completo com usuários
-- Relatórios em PDF
-- Todas as features integradas
-- Correção de conflitos de merge
+## 📝 Changelog
 
-#### V2
+### V3
+- ✅ Sistema completo com usuários
+- ✅ Relatórios em PDF com JsPDF
+- ✅ Todas as features integradas
+- ✅ Slim 4 com DI Container
+- ✅ RBAC funcional
+- ✅ Recuperação de senha
+- ✅ README.md atualizado
+
+### V2
 - Atualização de arquitetura
 - Slim Framework 4
 - Dependency Injection
+- Middleware PSR-15
 
-#### V1
+### V1
 - Versão inicial funcional
+- Controllers e Services
+- Integração Thinger.io
 
-### 🤝 Contribuição
+## 🤝 Contribuição
 
 Para contribuir:
 
@@ -211,16 +279,41 @@ Para contribuir:
 4. Push para a branch (`git push origin feature/MinhaFeature`)
 5. Abra um Pull Request
 
-### 📄 Licença
+## 🐛 Troubleshooting
 
-Este projeto é propriedade da ETE Pedro Leão Leal. © 2025
+**Conexão DB falhando**
+- Verifique `.env` com credenciais corretas
+- Erro `DatabaseConfigException`: `.env` ausente ou inválido
+- Veja `var/log/` para detalhes
 
-### 📞 Suporte
+**Rotas quebradas**
+- Confirme docroot apontando para `public/`
+- Verifique `public/index.php` e routes
 
-Para problemas ou dúvidas:
+**Sessões não persistem**
+- Verifique `session.save_path` em `public/php.ini`
+- Teste permissões do diretório (755 ou 700)
+
+**Thinger.io falhando**
+- Valide token e resource em Dashboard
+- Verifique logs em `var/log/`
+- `fetchThingerData()` retorna status/mensagem detalhada
+
+**E-mail de reset não chega**
+- Função `mail()` requer configuração SMTP
+- Substitua em `PasswordResetService` para usar provedor externo (SendGrid, etc)
+
+## 📞 Suporte
+
 - Abra uma issue no GitHub
-- Entre em contato com o administrador do sistema
+- Verifique documentação em `docs/`
+- Entre em contato com o administrador
+
+## 📄 Licença
+
+Propriedade da ETE Pedro Leão Leal. © 2025
 
 ---
 
 **Desenvolvido com ❤️ por Leo Lima**
+**Stack**: PHP 8.1+, Slim Framework 4, MySQL, Tailwind CSS, Lucide Icons
