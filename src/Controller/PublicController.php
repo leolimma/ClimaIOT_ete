@@ -90,12 +90,68 @@ class PublicController
             default => 'Todos os dados'
         };
 
-        $rows = $this->buildPdfRows($records);
-        $html = $this->buildPublicPdfHtml($rows, $periodLabel, count($records));
+        $html = <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Clima - $periodLabel</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; color:#333; line-height:1.6; }
+        .container { max-width:1000px; margin:0 auto; padding:20px; }
+        .header { text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:2px solid #333; }
+        .logo { max-height:80px; margin:0 auto 15px; display:block; }
+        h1 { font-size:18px; margin:10px 0; text-transform:uppercase; }
+        h2 { font-size:14px; margin:5px 0; font-weight:normal; }
+        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:11px; }
+        thead { background:#2c3e50; color:#fff; }
+        th { padding:10px; text-align:left; font-weight:bold; border:1px solid #34495e; }
+        td { padding:8px 10px; border:1px solid #ddd; }
+        tbody tr:nth-child(even) { background:#f9f9f9; }
+        .footer { margin-top:30px; text-align:center; font-size:11px; color:#666; }
+        .button { display:block; margin:20px auto; padding:12px 30px; background:#3498db; color:#fff; border:0; border-radius:5px; font-size:14px; cursor:pointer; }
+        @media print { .button { display:none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="/assets/img/agradece.jpg" alt="Logo" class="logo">
+            <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
+            <h2>ESPAÇO CRIA</h2>
+            <h2>Professor Coordenador Francisco Leonardo de Lima</h2>
+        </div>
+
+        <p><strong>Período:</strong> $periodLabel</p>
+        <p><strong>Data de Emissão:</strong> HTML;
+        $html .= date('d/m/Y H:i:s');
+        $html .= '</p><p><strong>Total de Registros:</strong> ' . count($records) . '</p>';
+        
+        $html .= '<table><thead><tr><th>ID</th><th>Data/Hora</th><th>Temp(°C)</th><th>Umid(%)</th><th>Pressão(hPa)</th><th>UV</th><th>Gas(KΩ)</th><th>Chuva</th></tr></thead><tbody>';
+        
+        foreach ($records as $row) {
+            $date = date('d/m/Y H:i', strtotime($row['data_registro']));
+            $html .= sprintf(
+                '<tr><td>%d</td><td>%s</td><td>%.1f</td><td>%d</td><td>%.0f</td><td>%.1f</td><td>%.1f</td><td>%s</td></tr>',
+                $row['id'],
+                $date,
+                $row['temp'] ?? 0,
+                $row['hum'] ?? 0,
+                $row['pres'] ?? 0,
+                $row['uv'] ?? 0,
+                $row['gas'] ?? 0,
+                htmlspecialchars($row['chuva_status'] ?? '')
+            );
+        }
+        
+        $html .= '</tbody></table>';
+        $html .= '<button class="button" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>';
+        $html .= '<div class="footer"><p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p></div>';
+        $html .= '</div></body></html>';
 
         $response = new Response();
-        $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8')
-            ->withHeader('Content-Disposition', 'inline; filename="historico_clima_' . date('Y-m-d_His') . '.html"');
+        $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8');
 
         $response->getBody()->write($html);
         return $response;
