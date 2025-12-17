@@ -125,6 +125,7 @@ class PublicController
     {
         $emisDate = date('d/m/Y H:i:s');
         $styles = $this->getPdfStyles();
+        $fileName = 'historico_clima_' . date('Y-m-d_His') . '.pdf';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -133,12 +134,13 @@ class PublicController
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Clima - $periodLabel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         $styles
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="pdf-content">
         <div class="header">
             <img src="/assets/img/agradece.jpg" alt="Logo" class="logo">
             <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
@@ -183,14 +185,28 @@ class PublicController
             </tbody>
         </table>
 
-        <button class="print-button" onclick="window.print()">
-            🖨️ Imprimir / Salvar como PDF
-        </button>
-
         <div class="footer">
             <p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
         </div>
     </div>
+
+    <button class="print-button" onclick="gerarPdf()">
+        📥 Baixar PDF
+    </button>
+
+    <script>
+        function gerarPdf() {
+            const elemento = document.getElementById('pdf-content');
+            const opcoes = {
+                margin: 10,
+                filename: '$fileName',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
+        }
+    </script>
 </body>
 </html>
 HTML;
