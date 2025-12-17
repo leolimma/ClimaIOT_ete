@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\PublicViewService;
+use Mpdf\Mpdf;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Psr7\Response;
 
@@ -81,59 +82,64 @@ class PublicController
 
     private function livePdf(string $period): Response
     {
-        $records = $this->publicViewService->getHistoryForExport($period);
+        try {
+            $records = $this->publicViewService->getHistoryForExport($period);
 
-        $periodLabel = match($period) {
-            '24' => 'Últimas 24 horas',
-            '168' => 'Últimos 7 dias',
-            '720' => 'Últimos 30 dias',
-            default => 'Todos os dados'
-        };
+            $periodLabel = match($period) {
+                '24' => 'Últimas 24 horas',
+                '168' => 'Últimos 7 dias',
+                '720' => 'Últimos 30 dias',
+                default => 'Todos os dados'
+            };
 
-        $html = <<<HTML
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Relatório de Clima - $periodLabel</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:Arial,sans-serif; color:#333; line-height:1.6; }
-        .container { max-width:1000px; margin:0 auto; padding:20px; }
-        .header { text-align:center; margin-bottom:30px; padding-bottom:20px; border-bottom:2px solid #333; }
-        .logo { max-height:80px; margin:0 auto 15px; display:block; }
-        h1 { font-size:18px; margin:10px 0; text-transform:uppercase; }
-        h2 { font-size:14px; margin:5px 0; font-weight:normal; }
-        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:11px; }
-        thead { background:#2c3e50; color:#fff; }
-        th { padding:10px; text-align:left; font-weight:bold; border:1px solid #34495e; }
-        td { padding:8px 10px; border:1px solid #ddd; }
-        tbody tr:nth-child(even) { background:#f9f9f9; }
-        .footer { margin-top:30px; text-align:center; font-size:11px; color:#666; }
-        .button { display:block; margin:20px auto; padding:12px 30px; background:#3498db; color:#fff; border:0; border-radius:5px; font-size:14px; cursor:pointer; }
-        @media print { .button { display:none; } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="/assets/img/agradece.jpg" alt="Logo" class="logo">
-            <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
-            <h2>ESPAÇO CRIA</h2>
-            <h2>Professor Coordenador Francisco Leonardo de Lima</h2>
-        </div>
+            $html = $this->buildPdfContent($records, $periodLabel);
+            $mpdf = new Mpdf([
+                'mode' => 'utf-8',
+                'format' => 'A4',
+                'margin_left' => 10,
+                'margin_right' => 10,
+                'margin_top' => 10,
+                'margin_bottom' => 10,
+            ]);
 
-        <p><strong>Período:</strong> $periodLabel</p>
-        <p><strong>Data de Emissão:</strong> HTML;
-        $html .= date('d/m/Y H:i:s');
-        $html .= '</p><p><strong>Total de Registros:</strong> ' . count($records) . '</p>';
-        
-        $html .= '<table><thead><tr><th>ID</th><th>Data/Hora</th><th>Temp(°C)</th><th>Umid(%)</th><th>Pressão(hPa)</th><th>UV</th><th>Gas(KΩ)</th><th>Chuva</th></tr></thead><tbody>';
-        
+            $mpdf->WriteHTML($html);
+
+            $pdfDir = __DIR__ . '/../../var/pdf';
+            if (!is_dir($pdfDir)) {
+                mkdir($pdfDir, 0755, true);
+            }
+
+            $fileName = 'historico_clima_' . date('Y-m-d_His') . '.pdf';
+            $filePath = $pdfDir . '/' . $fileName;
+            $mpdf->Output($filePath, \Mpdf\Output\Destination::FILE);
+
+            $response = new Response();
+            $response = $response
+                ->withHeader('Content-Type', 'application/pdf')
+                ->withHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                ->withHeader('Content-Length', (string)filesize($filePath));
+
+            $response->getBody()->write(file_get_contents($filePath));
+            return $response;
+        } catch (\Exception $e) {
+            error_log('PDF Generation Error: ' . $e->getMessage());
+            $response = new Response();
+            $response = $response->withStatus(500);
+            $response->getBody()->write('Erro ao gerar PDF');
+            return $response;
+        }
+    }
+
+    private function buildPdfContent(array $records, string $periodLabel): string
+    {
+        $emisDate = date('d/m/Y H:i:s');
+        $totalRecords = count($records);
+
+        $rowsHtml = '';
         foreach ($records as $row) {
             $date = date('d/m/Y H:i', strtotime($row['data_registro']));
-            $html .= sprintf(
-                '<tr><td>%d</td><td>%s</td><td>%.1f</td><td>%d</td><td>%.0f</td><td>%.1f</td><td>%.1f</td><td>%s</td></tr>',
+            $rowsHtml .= sprintf(
+                '<tr><td>%d</td><td>%s</td><td>%.1f</td><td>%d</td><td>%.0f</td><td>%.1f</td><td>%.1f</td><td>%s</td></tr>' . "\n",
                 $row['id'],
                 $date,
                 $row['temp'] ?? 0,
@@ -141,20 +147,69 @@ class PublicController
                 $row['pres'] ?? 0,
                 $row['uv'] ?? 0,
                 $row['gas'] ?? 0,
-                htmlspecialchars($row['chuva_status'] ?? '')
+                $this->e($row['chuva_status'] ?? '')
             );
         }
-        
-        $html .= '</tbody></table>';
-        $html .= '<button class="button" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>';
-        $html .= '<div class="footer"><p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p></div>';
-        $html .= '</div></body></html>';
 
-        $response = new Response();
-        $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Clima - $periodLabel</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+        .logo { max-height: 80px; margin: 0 auto 15px; display: block; }
+        h1 { font-size: 18px; margin: 10px 0; text-transform: uppercase; }
+        h2 { font-size: 14px; margin: 5px 0; font-weight: normal; }
+        .info { margin: 20px 0; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
+        thead { background: #2c3e50; color: #fff; }
+        th { padding: 10px; text-align: left; font-weight: bold; border: 1px solid #34495e; }
+        td { padding: 8px; border: 1px solid #ddd; }
+        tbody tr:nth-child(even) { background: #f9f9f9; }
+        .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="public/assets/img/agradece.jpg" alt="Logo" class="logo">
+        <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
+        <h2>ESPAÇO CRIA</h2>
+        <h2>Professor Coordenador Francisco Leonardo de Lima</h2>
+    </div>
 
-        $response->getBody()->write($html);
-        return $response;
+    <div class="info">
+        <p><strong>Período:</strong> $periodLabel</p>
+        <p><strong>Data de Emissão:</strong> $emisDate</p>
+        <p><strong>Total de Registros:</strong> $totalRecords</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data/Hora</th>
+                <th>Temp(°C)</th>
+                <th>Umid(%)</th>
+                <th>Pressão(hPa)</th>
+                <th>UV</th>
+                <th>Gas(KΩ)</th>
+                <th>Chuva</th>
+            </tr>
+        </thead>
+        <tbody>
+            $rowsHtml
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+    </div>
+</body>
+</html>
+HTML;
     }
 
     private function buildPdfRows(array $records): string
