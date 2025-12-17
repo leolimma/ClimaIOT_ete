@@ -28,3 +28,4 @@ convert_to_jpg.php
 docs/
 *.md
 !README.md
+!FUNCIONALIDADE_HISTORICO_PUBLICO.md
