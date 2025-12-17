@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\PublicViewService;
+use Dompdf\Dompdf;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Psr7\Response;
 
@@ -93,12 +94,30 @@ class PublicController
         $rows = $this->buildPdfRows($records);
         $html = $this->buildPublicPdfHtml($rows, $periodLabel, count($records));
 
-        $response = new Response();
-        $response = $response->withHeader('Content-Type', 'text/html; charset=utf-8')
-            ->withHeader('Content-Disposition', 'inline; filename="historico_clima_' . date('Y-m-d_His') . '.html"');
+        try {
+            $dompdf = new Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
 
-        $response->getBody()->write($html);
-        return $response;
+            $pdf = $dompdf->output();
+
+            $response = new Response();
+            $response = $response->withHeader('Content-Type', 'application/pdf')
+                ->withHeader('Content-Disposition', 'attachment; filename="historico_clima_' . date('Y-m-d_His') . '.pdf"')
+                ->withHeader('Content-Length', (string)strlen($pdf));
+
+            $response->getBody()->write($pdf);
+            return $response;
+        } catch (\Exception $e) {
+            error_log('DOMPDF Error: ' . $e->getMessage());
+            
+            $response = new Response();
+            $response = $response
+                ->withStatus(500);
+            $response->getBody()->write(json_encode(['error' => 'Erro ao gerar PDF']));
+            return $response;
+        }
     }
 
     private function buildPdfRows(array $records): string
@@ -182,10 +201,6 @@ class PublicController
                 $rows
             </tbody>
         </table>
-
-        <button class="print-button" onclick="window.print()">
-            🖨️ Imprimir / Salvar como PDF
-        </button>
 
         <div class="footer">
             <p>Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
