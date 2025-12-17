@@ -312,7 +312,7 @@ class RelatoriosController
             <img src="/assets/img/agradece.jpg" alt="Logo" class="logo">
             <h1>ESCOLA TÉCNICA ESTADUAL PEDRO LEÃO LEAL</h1>
             <h2>ESPAÇO CRIA</h2>
-            <h2>PROF. COORDENADOR Francisco Leonardo de Lima</h2>
+            <h2>Professor Coordenador Francisco Leonardo de Lima</h2>
         </div>
 
         <div class="info">
