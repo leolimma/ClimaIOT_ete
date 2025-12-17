@@ -201,7 +201,7 @@ class PublicController
                 margin: 10,
                 filename: '$fileName',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
             };
             html2pdf().set(opcoes).from(elemento).save();
