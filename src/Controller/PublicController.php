@@ -266,9 +266,12 @@ CSS;
         <header class="bg-white border-b relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
             <div class="max-w-5xl mx-auto px-6 py-16 text-center relative z-10">
-                <a href="/admin/login" class="absolute top-6 right-6 hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 text-gray-500 hover:text-indigo-600 hover:border-indigo-200 transition shadow-sm bg-white" aria-label="Area tecnica">
-                    <i data-lucide="user-cog"></i>
-                </a>
+                <div class="absolute top-6 right-6 hidden sm:inline-flex items-center gap-3">
+                    <a href="/sobre.html" class="text-gray-600 hover:text-indigo-600 font-medium transition">Sobre</a>
+                    <a href="/admin/login" class="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 text-gray-500 hover:text-indigo-600 hover:border-indigo-200 transition shadow-sm bg-white" aria-label="Area tecnica">
+                        <i data-lucide="user-cog"></i>
+                    </a>
+                </div>
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-{$badgeColor}-100 text-{$badgeColor}-700 text-xs font-bold uppercase tracking-wide mb-6">
                     <span class="w-2 h-2 rounded-full bg-{$badgeColor}-500 animate-pulse"></span>
                     Sistema {$status}
@@ -342,9 +345,16 @@ CSS;
         </section>
 
         <footer class="mt-auto bg-white border-t py-6">
-            <div class="max-w-5xl mx-auto text-center px-6">
-                <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-2">
-                <p class="text-sm text-gray-500">Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+            <div class="max-w-5xl mx-auto px-6">
+                <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-4">
+                <div class="text-center space-y-2 mb-4">
+                    <p class="text-sm text-gray-500">Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+                    <div class="flex justify-center gap-4 text-sm">
+                        <a href="/sobre.html" class="text-indigo-600 hover:text-indigo-700">Sobre o Projeto</a>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-gray-500">Licença: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" class="text-green-600 hover:text-green-700">GPL 3</a></span>
+                    </div>
+                </div>
             </div>
         </footer>
     </div>
@@ -423,9 +433,16 @@ HTML;
     </div>
 
     <footer class="mt-auto bg-white border-t py-4">
-        <div class="max-w-6xl mx-auto text-center px-4">
-            <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-2">
-            <p class="text-sm text-gray-500">ETE Pedro Leão Leal © 2025</p>
+        <div class="max-w-6xl mx-auto px-4">
+            <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-3">
+            <div class="text-center space-y-1">
+                <p class="text-sm text-gray-500">ETE Pedro Leão Leal © 2025</p>
+                <div class="flex justify-center gap-4 text-xs">
+                    <a href="/sobre.html" class="text-indigo-600 hover:text-indigo-700">Sobre o Projeto</a>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-gray-500">Licença: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" class="text-green-600 hover:text-green-700">GPL 3</a></span>
+                </div>
+            </div>
         </div>
     </footer>
 

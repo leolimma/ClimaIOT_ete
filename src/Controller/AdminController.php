@@ -354,6 +354,7 @@ class AdminController
         <div class="flex items-center gap-2 font-bold text-xl text-indigo-600"><i data-lucide="cloud-lightning"></i> Admin</div>
         <div class="flex gap-4 text-sm items-center">
             <span class="text-gray-600">Usuário: <b>{$this->escape($username)}</b> <span class="ml-2 px-2 py-1 text-xs font-bold rounded " . ($isAdmin ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600") . "\">{$roleLabel}</span></span>
+            <a href="/sobre.html" class="text-indigo-600 hover:text-indigo-700 font-medium transition">Sobre</a>
             <a href="/admin/logout" class="text-red-500 font-bold hover:bg-red-50 px-3 py-1 rounded transition">Sair</a>
         </div>
     </nav>
@@ -559,9 +560,16 @@ HTML;
     </div>
 
     <footer class="mt-auto bg-white border-t p-4">
-        <div class="max-w-6xl mx-auto text-center">
-            <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-2">
-            <p class="text-sm text-gray-500">Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+        <div class="max-w-6xl mx-auto px-4">
+            <img src="/assets/img/agradece.png" alt="Agradecimento" class="mx-auto max-h-[60px] object-contain mb-3">
+            <div class="text-center space-y-1">
+                <p class="text-sm text-gray-500">Sistema de Monitoramento - ETE Pedro Leão Leal © 2025</p>
+                <div class="flex justify-center gap-4 text-xs">
+                    <a href="/sobre.html" class="text-indigo-600 hover:text-indigo-700">Sobre o Projeto</a>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-gray-500">Licença: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" class="text-green-600 hover:text-green-700">GPL 3</a></span>
+                </div>
+            </div>
         </div>
     </footer>
 
