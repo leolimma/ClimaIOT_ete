@@ -2,6 +2,7 @@
   "name": "ete/clima",
   "description": "Estação Climática ETE",
   "type": "project",
+  "license": "GPL-3.0-or-later",
   "require": {
     "php": ">=8.0",
     "slim/slim": "^4.13",
