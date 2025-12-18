@@ -222,7 +222,25 @@ Validação automática ao salvar.
 - Docroot web deve apontar para `public/`
 - Backend roda em `public/index.php`
 
-### Passos
+### ⚠️ Instalação em Servidores Compartilhados (HostGator, etc)
+
+Se o servidor **NÃO permite rodar `composer install`**:
+
+1. **Gerar vendor localmente**:
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   ```
+
+2. **Compactar com vendor** (~15-20 MB):
+   ```bash
+   7z a clima_ete.7z .
+   ```
+
+3. **Fazer upload e descompactar** no servidor
+
+4. **NÃO** tentar instalar composer no servidor
+
+### Passos Normais
 1. Instalar dependências: `composer install --no-dev --optimize-autoloader`
 2. Criar `.env` com credenciais
 3. Executar setup: `GET /setup` (primeira vez)

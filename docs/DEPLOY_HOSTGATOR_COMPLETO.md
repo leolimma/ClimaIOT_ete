@@ -68,16 +68,16 @@ dir src/Controller
 Remove-Item -Path "var/log/*" -Exclude ".gitkeep"
 Remove-Item -Path "var/pdf/*" -Exclude ".gitkeep"
 
-# ✅ NOTA: Vendor está em .gitignore - não será versionado
-# Ele será instalado automaticamente no servidor com composer install
+# Gerar vendor localmente (será enviado para servidor)
+composer install --no-dev --optimize-autoloader
 
 # Remover arquivos de configuração sensíveis
 Remove-Item -Path ".env"  # Não incluir em deploy
 Remove-Item -Path "db_config.php" -Force  # Será recriado no HostGator
 
-# Validar que tudo está pronto
+# Validar tudo
 composer validate
-composer install --no-dev --optimize-autoloader  # Testa instalação localmente
+php -l src/Controller/PublicController.php
 ```
 
 ### 1.3 Verificar Estrutura do Banco
@@ -313,26 +313,23 @@ php setup.php
 ### 5.1 Preparar Arquivo para Upload
 
 ```bash
-# Criar arquivo compactado
-# O vendor NÃO será incluído (está em .gitignore)
-# Será instalado no servidor com: composer install --no-dev --optimize-autoloader
+# ⚠️ IMPORTANTE: Servidor não permite composer install
+# Gerar vendor LOCALMENTE e enviar junto com código
 
-# Arquivo será compactado com tudo que está versionado:
-# - src/, lib/, public/, docs/
-# - composer.json, composer.lock
-# - README.md, .gitignore
+# 1. Gerar vendor localmente (já feito em 1.2)
+composer install --no-dev --optimize-autoloader
 
-# Usando 7-Zip:
+# 2. Criar arquivo compactado INCLUINDO vendor
+# Usando 7-Zip (recomendado - mais compacto):
 cd c:\PROJETOS\clima_ete_novo
 
-# Criar arquivo .7z (git tracked files only)
-git archive --format zip -o clima_ete_2025_12_17.zip HEAD
+7z a -xr!.env -xr!.git -xr!backup -xr!vendor_bkp -xr!node_modules clima_ete_2025_12_17.7z
 
-# Ou com 7z (mais compacto):
-7z a -xr!.env -xr!.git -xr!backup -xr!vendor_bkp -xr!node_modules -xr!vendor clima_ete_2025_12_17.7z
+# Resultado: arquivo ~15-20 MB (código + vendor otimizado)
 
-# Resultado: arquivo ~5-10 MB (código sem vendor)
-# Vendor será instalado no servidor (~8-10 MB após install)
+# Alternativa: ZIP (menos compacto)
+Compress-Archive -Path . -DestinationPath clima_ete_2025_12_17.zip -Exclude ".env", ".git", "backup", "vendor_bkp", "node_modules"
+# Resultado: arquivo ~25-30 MB
 ```
 
 ### 5.2 Upload via FTP
@@ -348,12 +345,15 @@ git archive --format zip -o clima_ete_2025_12_17.zip HEAD
 2. Navegar para `public_html/`
 
 3. Fazer upload de:
-   - `clima_ete_2025_12_17.zip` (ou .7z - arquivo compactado, ~5-10 MB)
+   - `clima_ete_2025_12_17.7z` (arquivo compactado com vendor, ~15-20 MB)
+   - Ou `clima_ete_2025_12_17.zip` (sem 7z, ~25-30 MB)
    - `backup/clima_ete_backup_20251217.sql` (para referência/rollback)
+
+⏱️ **Tempo estimado**: 5-15 min (depende de sua conexão)
 
 ### 5.3 Descompactar no Servidor
 
-**Via SSH:**
+**Via SSH ou File Manager:**
 
 ```bash
 # SSH no HostGator
@@ -370,9 +370,15 @@ unzip clima_ete_2025_12_17.zip
 # Remover arquivo compactado
 rm clima_ete_2025_12_17.zip  # ou .7z
 
-# Listar para confirmar
+# Verificar se vendor foi enviado
+ls -la vendor/
+ls -la vendor/autoload.php
+
+# Listar estrutura
 ls -la
 ```
+
+✅ **IMPORTANTE**: Vendor já está presente - NÃO precisa rodar composer install!
 
 ### 5.4 Restaurar Diretórios Importantes
 
@@ -426,25 +432,16 @@ chmod 600 .env
 
 ### 6.2 Instalar Dependências Composer
 
-**Via SSH:**
+⚠️ **NÃO EXECUTAR** - Composer não é permitido no servidor!
+
+✅ **Vendor já foi enviado** no arquivo compactado (seção 5).
 
 ```bash
-# Entrar na pasta
-cd /home/seu_usuario/public_html
+# APENAS verificar se vendor está presente
+ls -la /home/seu_usuario/public_html/vendor/
 
-# Instalar dependências (vendor será criado aqui)
-# Dependências foram otimizadas: 5 packages diretos, ~15 totais
-composer install --no-dev --optimize-autoloader
-
-# Resultado: vendor/ criado com ~8-10 MB
-
-# Verificar se há erros
-php -l src/Controller/PublicController.php
-php -l src/Service/*.php
-php -l src/Repository/*.php
-
-# Validar composer
-composer validate
+# Deve retornar arquivos e diretórios do vendor
+# Se aparecer, tudo está OK!
 ```
 
 ### 6.3 Executar Setup Script
