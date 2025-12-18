@@ -14,6 +14,9 @@
 .env
 .env.local
 
+# Deploy files (específicos por usuário)
+DEPLOY_*.md
+
 # Bin - ignorar tudo exceto essenciais
 bin/*
 !bin/reset_admin.php
