@@ -389,6 +389,7 @@ chmod -R 755 src/
 chmod -R 755 lib/
 chmod 777 var/log
 chmod 777 var/pdf
+chmod 777 var/sessions        # ← IMPORTANTE para sessões PHP
 
 # Garantir que .htaccess está correto
 cat > .htaccess << 'EOF'
@@ -399,6 +400,10 @@ cat > .htaccess << 'EOF'
     RewriteRule ^(.*)$ index.php [L]
 </IfModule>
 EOF
+
+# Criar diretório de sessões se não existir
+mkdir -p var/sessions
+chmod 777 var/sessions
 ```
 
 ---
@@ -641,13 +646,36 @@ mysql -h localhost -u seu_usuario_clima -p seu_usuario_clima_ete
 # Mudar permissões
 chmod 777 var/log
 chmod 777 var/pdf
+chmod 777 var/sessions
 
 # Ou usar permissão mais restrita
 chmod 755 var/log
 chmod 755 var/pdf
+chmod 755 var/sessions
 chown -R seu_usuario_apache var/log
 chown -R seu_usuario_apache var/pdf
+chown -R seu_usuario_apache var/sessions
 ```
+
+### ❌ Problema: "session_start(): open(/var/cpanel/php/sessions/..., O_RDWR) failed"
+
+**Causa**: Diretório de sessão padrão do cPanel não tem permissão
+
+**Solução**:
+```bash
+# 1. Garantir que var/sessions existe
+mkdir -p var/sessions
+chmod 777 var/sessions
+
+# 2. SessionMiddleware deve usar este diretório automaticamente
+# 3. Se ainda falhar, testar:
+ls -la var/sessions/
+# Deve retornar: drwxrwxrwx (777)
+
+# 4. Se falhar, pode ser SELinux - contactar suporte HostGator
+```
+
+**Referência**: Ver [docs/HOSTGATOR_SESSION_FIX.md](HOSTGATOR_SESSION_FIX.md) para detalhes completos.
 
 ### ❌ Problema: Sync não está rodando
 

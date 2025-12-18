@@ -1,0 +1,3 @@
+# Diretório de sessões PHP
+# Criado pelo SessionMiddleware para armazenar arquivos de sessão
+# em ambientes onde o path padrão do servidor não tem permissão
