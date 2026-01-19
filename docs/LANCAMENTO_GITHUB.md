@@ -2,9 +2,7 @@
 
 **Data**: 17 de dezembro de 2025  
 **Status**: ✅ CÓDIGO ENVIADO PARA GITHUB  
-**Repositório**: https://github.com/leolimma/ClimaIOT_ete
-
----
+**Repositório**: https://seu-repositorio-github.com/seu-usuario/seu-projeto
 
 ## ✅ O Que Foi Feito
 
@@ -35,7 +33,7 @@
 
 ### 1️⃣ Configurar GitHub (15 min)
 
-**Ir para**: https://github.com/leolimma/ClimaIOT_ete/settings
+**Ir para**: https://github.com/seu-usuario/seu-projeto/settings
 
 ```
 ✅ About section:
@@ -56,7 +54,7 @@
 
 ### 2️⃣ Adicionar Licença (5 min)
 
-**Ir para**: https://github.com/leolimma/ClimaIOT_ete/add/main
+**Ir para**: https://github.com/seu-usuario/seu-projeto/add/main
 
 ```
 - Arquivo: LICENSE
@@ -66,7 +64,7 @@
 
 ### 3️⃣ Criar Release/Tag (5 min)
 
-**Ir para**: https://github.com/leolimma/ClimaIOT_ete/releases
+**Ir para**: https://github.com/seu-usuario/seu-projeto/releases
 
 ```bash
 # Localmente, criar tag:
@@ -148,7 +146,7 @@ git log --all -S "secret" --oneline       # ✅ Sem resultado
    
    Stack: PHP 8.1+, Slim Framework 4, MySQL, Thinger.io
    
-   GitHub: github.com/leolimma/ClimaIOT_ete
+   GitHub: github.com/seu-usuario/seu-projeto
    
    #PHP #IoT #OpenSource #EducaçãoTecnológica"
    ```
@@ -181,12 +179,12 @@ git log --all -S "secret" --oneline       # ✅ Sem resultado
 ```
 PROJETOS
 
-ClimaIOT_ete - Sistema de Monitoramento Ambiental
-https://github.com/leolimma/ClimaIOT_ete
+ClimaIOT - Sistema de Monitoramento Ambiental
+https://github.com/seu-usuario/seu-projeto
 - Desenvolvedor Full Stack em PHP 8.1+ com Slim Framework 4
 - Implementei autenticação RBAC, integração IoT com Thinger.io
 - Sistema de relatórios em PDF/CSV e painel admin responsivo
-- Deployed em HostGator com MySQL e cron jobs
+- Deployed em hosting remoto com MySQL e cron jobs
 - 3000+ linhas de código bem documentadas
 ```
 
@@ -250,7 +248,7 @@ Quando receberem issues:
 Depois de publicado, você pode monitorar:
 
 ```
-GitHub Insights → https://github.com/leolimma/ClimaIOT_ete/graphs/traffic
+GitHub Insights → https://github.com/seu-usuario/seu-projeto/graphs/traffic
 
 ✅ Stargazers (People who loved your code)
 ✅ Network (Forks and clones)
@@ -289,10 +287,10 @@ Se precisar:
 
 ```bash
 # Ver repositório
-https://github.com/leolimma/ClimaIOT_ete
+https://github.com/seu-usuario/seu-projeto
 
 # Clonar para usar
-git clone https://github.com/leolimma/ClimaIOT_ete.git
+git clone https://github.com/seu-usuario/seu-projeto.git
 cd ClimaIOT_ete
 composer install
 

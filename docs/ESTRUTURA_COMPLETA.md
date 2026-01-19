@@ -394,10 +394,10 @@ composer install
 copy .env.example .env
 
 # 4. Editar credenciais
-# Abrir .env e preencher DB_HOST, DB_NAME, etc
+# Abrir .env e preencher DB_HOST, DB_NAME, DB_USER, DB_PASS, etc
 
 # 5. Criar banco
-mysql -u root -p < docs/terr6836_clima_ete.sql
+mysql -u root -p seu_banco < docs/seu_projeto_dump.sql
 
 # 6. Executar setup
 php setup.php

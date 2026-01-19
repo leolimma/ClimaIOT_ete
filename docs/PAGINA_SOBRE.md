@@ -17,10 +17,10 @@ A página inclui as seguintes seções:
 
 ### 3. Créditos e Financiamento
 - **Instituição Executora**: ETE Pedro Leão Leal
-- **Coordenação Geral**: Francisco Leonardo de Lima e José Cleuton da Silva Belarmino
-- **Estudantes Bolsistas**: Ana Eloyza Alves Souza, Carlos Eduardo Alves dos Santos, Diego Armando Magalhães Leal, Joyce Maria Rodrigues Gondim
-- **Financiamento**: Projeto "Tecnoambiente: Soluções IoT para um Futuro Sustentável"
-- **Fomento**: FACEPE, SECTI-PE, SEE-PE, Governo de Pernambuco
+- **Coordenação Geral**: [Insira o nome dos coordenadores]
+- **Estudantes Bolsistas**: [Insira os nomes dos estudantes bolsistas]
+- **Financiamento**: [Insira o nome do projeto/programa]
+- **Fomento**: [Insira os órgãos de fomento]
 - **Licença**: GNU General Public License v3.0 (GPL-3.0)
 
 ### 4. Declaração Institucional

@@ -23,53 +23,56 @@ Aplicação PHP (Slim 4) para coletar, persistir e visualizar leituras da estaç
 ## 🚀 Instalação Rápida
 
 ```bash
-# 1) Clonar e instalar dependências
-git clone https://github.com/leolimma/ClimaIOT.git clima_ete
+# 1) Clonar repositório
+git clone https://seu-repositorio.git clima_ete
 cd clima_ete
 composer install --no-dev --optimize-autoloader
 
-# 2) Criar arquivo .env (veja Configuração abaixo)
+# 2) Criar arquivo .env (veja .env.example)
 cp .env.example .env
-# Editar .env com suas credenciais
+# Editar .env com suas credenciais (não commitar arquivo .env!)
 
-# 3) Acessar setup (primeira vez)
+# 3) Acessar setup pela web (primeira vez)
 php -S localhost:8000 -t public
 # Acesse http://localhost:8000/setup
 ```
 
 ## ⚙️ Configuração (.env)
 
-Crie `.env` na raiz com, no mínimo:
+Crie `.env` na raiz com suas credenciais (veja `.env.example` para referência):
 
 ```env
-DB_HOST=localhost
-DB_NAME=clima_ete
-DB_USER=usuario
-DB_PASS=senha
+# ====== BANCO DE DADOS ======
+DB_HOST=seu_host_mysql
+DB_NAME=seu_nome_banco
+DB_USER=seu_usuario_db
+DB_PASS=sua_senha_db
 DB_CHARSET=utf8mb4
 
-# Thinger.io
-THINGER_USER=seu_usuario
-THINGER_DEVICE=seu_dispositivo
-THINGER_RESOURCE=seu/recurso
-THINGER_TOKEN=Bearer SEU_TOKEN
+# ====== THINGER.IO ======
+THINGER_USER=seu_usuario_thinger
+THINGER_DEVICE=seu_id_dispositivo
+THINGER_RESOURCE=seu_recurso_path
+THINGER_TOKEN=seu_token_thinger
 
-# Cron (opcional)
-CLIMA_CRON_KEY=uma_chave_segura
+# ====== CRON (Opcional) ======
+CLIMA_CRON_KEY=sua_chave_segura_aqui
 ```
 
 **Nota:** O sistema agora usa `.env` (arquivo `.env.example` está disponível). O arquivo `db_config.php` é descontinuado.
 
-## 🔑 Login Padrão
+## 🔑 Primeiro Acesso
 
-Após setup:
+Após executar `setup.php`:
 - **Usuário**: admin
-- **Senha**: admin (alterar na primeira entrada)
+- **Senha**: Definida durante setup (alterar na primeira entrada!)
 
-Para resetar admin via CLI:
+Para resetar senha admin via CLI (edite a senha no script primeiro):
 ```powershell
 php -r "require 'bin/reset_admin.php';"
 ```
+
+> ⚠️ **Importante**: Nunca use senhas padrão em produção. Sempre altere a senha após o primeiro login.
 
 ## 📂 Estrutura do Projeto
 

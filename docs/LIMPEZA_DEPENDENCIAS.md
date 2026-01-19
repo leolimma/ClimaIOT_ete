@@ -176,8 +176,8 @@ private function livePdf(string $period): Response
 
 ```bash
 # Clonar
-git clone https://github.com/leolimma/ClimaIOT_ete.git
-cd ClimaIOT_ete
+git clone https://github.com/seu-usuario/seu-projeto.git
+cd seu-projeto
 
 # Instalar dependências
 composer install --optimize-autoloader

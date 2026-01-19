@@ -78,14 +78,14 @@ rm -f test_*.php check_*.php debug_*.php
 
 ### **2.1 Criar Banco de Dados MySQL**
 1. Acesse **cPanel** → **MySQL Databases**
-2. Crie novo banco (ex: `terr6836_clima_ete`)
+2. Crie novo banco (ex: `seu_usuario_seu_projeto_db`)
 3. Crie novo usuário MySQL
 4. Adicione privilégios ao usuário
 5. **Anote**: nome do banco, usuário e senha
 
 ### **2.2 Configurar Subdomínio**
 1. **cPanel** → **Subdomains**
-2. Crie o subdomínio (ex: `clima` no domínio `cria.click`)
+2. Crie o subdomínio (ex: `clima` no seu domínio)
 3. **Edite o subdomínio criado** (ícone de lápis)
 4. **Document Root**: Altere para apontar para a pasta `public/`:
    - Se o subdomínio está em `/home3/seu_usuario/clima.cria.click/`, aponte para:
@@ -263,14 +263,14 @@ return [
 4. **Se ainda não funcionar:**
    - Contate o suporte HostGator
    - Peça para ativar/verificar `mod_rewrite`
-   - Forneça o caminho: `/home3/terr6836/clima.cria.click/public`
+   - Forneça o caminho: `/home/seu_usuario/seu_dominio/public`
 
 ### Erro: "404 Not Found"
 - Verifique se `.htaccess` está correto em `public/`
-- Certifique-se de `mod_rewrite` está habilitado (contate suporte HostGator)
+- Certifique-se de `mod_rewrite` está habilitado (contate suporte)
 
 ### Erro: "Connection refused" no banco
-- Verifique `db_config.php` com credenciais corretas
+- Verifique `.env` com credenciais corretas
 - MySQL está ativo no cPanel?
 
 ### Cron não executa

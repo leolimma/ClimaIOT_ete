@@ -60,9 +60,9 @@ function ensureSchema(PDO $pdo): void
         $stmt = $pdo->prepare("INSERT INTO clima_users (username, password_hash, name, email, created_at, role) VALUES (:username, :password_hash, :name, :email, NOW(), 'admin')");
         $stmt->execute([
             ':username' => 'admin',
-            ':password_hash' => password_hash('admin123', PASSWORD_DEFAULT),
-            ':name' => 'Administrador',
-            ':email' => 'admin@sistema.local',
+            ':password_hash' => password_hash('ALTERE_ESTA_SENHA_NO_PRIMEIRO_LOGIN', PASSWORD_DEFAULT),
+            ':name' => 'Administrador do Sistema',
+            ':email' => 'seu_email@dominio.com',
         ]);
     }
 

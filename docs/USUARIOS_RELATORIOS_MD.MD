@@ -71,9 +71,9 @@ Este documento resume todas as alterações e orientações implementadas hoje p
    php -S localhost:8080 -t public
    ```
 2. Acesse o login: `http://localhost:8080/admin/login`
-3. Credenciais padrão (após reset):
+3. Credenciais padrão (após setup ou reset):
    - Usuário: `admin`
-   - Senha: `admin123`
+   - Senha: **Configure durante setup ou via bin/reset_admin.php**
 4. Acesse o dashboard: `http://localhost:8080/admin`
    - Admin verá todas as seções.
    - Usuário verá apenas relatórios e alteração de senha.
@@ -84,7 +84,8 @@ Este documento resume todas as alterações e orientações implementadas hoje p
   ```powershell
   php -r "require 'bin/reset_admin.php';"
   ```
-- Efeito: Reseta a senha do `admin` para `admin123` e garante `role='admin'`, compatível com colunas `password` ou `password_hash`.
+- Importante: Edite o arquivo primeiro e defina uma senha segura!
+- Efeito: Reseta a senha do `admin` para a definida no script, garantindo `role='admin'`.
 
 ## Observações e Compatibilidade
 - O esquema de usuários pode conter `password` (novo) ou `password_hash` (antigo). O sistema está compatível com ambos.

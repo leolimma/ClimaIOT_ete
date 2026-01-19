@@ -5,8 +5,8 @@
  * Se a sessão estiver falhando, configure o caminho correto aqui.
  * 
  * Exemplo para HostGator:
- * - Usuário: terr6836
- * - Caminho: /home3/terr6836/tmp
+ * - Usuário: seu_usuario_hosting
+ * - Caminho: /home/seu_usuario_hosting/tmp
  * 
  * Descomente e configure conforme necessário:
  */

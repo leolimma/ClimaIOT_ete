@@ -27,21 +27,19 @@ session.save_handler = "files"
 ```bash
 ssh seu_usuario@seu-dominio
 
-# Substituir SEU_USUARIO pelo real (ex: terr6836)
-# Descobrir:
-whoami
-echo $HOME
-# Retorna: /home3/terr6836
+# Descobrir seu usuário e caminho home:
+whoami              # Retorna seu usuário
+echo $HOME          # Retorna seu caminho home
 
 # Editar php.ini
 nano public_html/public/php.ini
 
-# Mudar linha:
-# session.save_path = "/home3/terr6836/tmp"
+# Mudar linha (substitua seu_usuario pelo valor retornado acima):
+# session.save_path = "/home/seu_usuario/tmp"
 
 # Criar diretório se não existir:
-mkdir -p /home3/terr6836/tmp
-chmod 700 /home3/terr6836/tmp
+mkdir -p ~/tmp
+chmod 700 ~/tmp
 ```
 
 ### 4️⃣ Testar

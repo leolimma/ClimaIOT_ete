@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `terr6836_clima_ete`
+-- Banco de dados: `seu_usuario_clima_ete`
 --
 
 -- --------------------------------------------------------
@@ -36,13 +36,14 @@ CREATE TABLE `clima_config` (
 -- Despejando dados para a tabela `clima_config`
 --
 
+-- CREDENCIAIS REMOVIDAS POR SEGURANÇA - Configure as suas no painel admin ou .env:
 INSERT INTO `clima_config` (`chave`, `valor`) VALUES
-('cron_key', 'protegido'),
-('setup_done', '2025-12-11T20:38:59+01:00'),
-('thinger_device', 'nodemcu_clima'),
-('thinger_resource', 'weather'),
-('thinger_token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXYiOiJub2RlbWN1X2NsaW1hIiwiaWF0IjoxNzY1MzIyOTUyLCJqdGkiOiI2OTM4YjBjOGI0ODc0NGY0MTAxMGNkZmYiLCJyZXMiOlsid2VhdGhlciJdLCJzdnIiOiJ1cy1lYXN0LmF3cy50aGluZ2VyLmlvIiwidXNyIjoibGVvbGltbWFiciJ9.Y0t_F5PcIFPye0Pno0CsGj4b9INTM_yYO09ccLZ_V8A'),
-('thinger_user', 'leolimmabr');
+('cron_key', 'INSIRA_SUA_CHAVE_SEGURA_AQUI'),
+('setup_done', 'CONFIGURE_VIA_SETUP'),
+('thinger_device', 'SEU_ID_DISPOSITIVO'),
+('thinger_resource', 'SEU_RECURSO'),
+('thinger_token', 'SEU_TOKEN_THINGER'),
+('thinger_user', 'SEU_USUARIO_THINGER');
 
 -- --------------------------------------------------------
 
@@ -109,8 +110,9 @@ CREATE TABLE `clima_users` (
 -- Despejando dados para a tabela `clima_users`
 --
 
+-- USUÁRIO ADMIN REMOVIDO POR SEGURANÇA - Configure via setup.php ou bin/reset_admin.php
 INSERT INTO `clima_users` (`id`, `username`, `password_hash`, `name`, `email`, `created_at`, `role`) VALUES
-(5, 'admin', '$2y$10$JH1g8jWDMJdXI2q62UWoMOd7Udxl4igLIZHRt2ljCZ2Rh8SrHeN6i', 'Francisco Leonardo de Lima', 'leolimma.br@gmail.com', '2025-12-14 09:58:26', 'admin');
+(1, 'admin', 'CONFIGURE_VIA_SETUP_OU_RESET', 'Seu Nome Completo', 'seu_email@dominio.com', NOW(), 'admin');
 
 -- --------------------------------------------------------
 

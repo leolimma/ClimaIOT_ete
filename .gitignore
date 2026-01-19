@@ -1,9 +1,16 @@
 # Ignore credenciais locais
 /db_config.php
 
+# Backups SQL (contém dados sensíveis)
+/backup/
+
 # Dependências locais
 /vendor/
 /vendor_bkp/
+
+# Arquivos compactados de vendor e backup
+vendor.zip
+*.zip
 
 # Logs e temporários
 /var/log/

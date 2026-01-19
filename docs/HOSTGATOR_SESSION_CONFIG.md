@@ -21,13 +21,13 @@ Use uma das três opções abaixo (em ordem de preferência):
 <?php
 // config/session.php
 
-// CONFIGURE PARA SEU USUARIO HOSTGATOR
-define('CUSTOM_SESSION_PATH', '/home3/SEU_USUARIO/tmp');
-// Exemplo real:
-// define('CUSTOM_SESSION_PATH', '/home3/terr6836/tmp');
+// CONFIGURE PARA SEU USUARIO HOSTING
+define('CUSTOM_SESSION_PATH', '/home/seu_usuario_hosting/tmp');
+// Exemplo:
+// define('CUSTOM_SESSION_PATH', '/home/seu_usuario_hosting/tmp');
 ```
 
-### 1.2 Criar diretório no HostGator (via SSH)
+### 1.2 Criar diretório no servidor (via SSH)
 
 ```bash
 ssh seu_usuario@seu-dominio.com.br
@@ -93,15 +93,15 @@ chmod 777 public_html/var/sessions/
 
 ```bash
 # Conecte via SSH
-ssh usuario@seu-dominio.com.br
+ssh seu_usuario@seu-dominio.com.br
 
-# Execute:
+# Execute para descobrir seu usuário:
 whoami
-# Retorna: terr6836 (seu usuario)
+# Retorna: seu_usuario_hosting (seu usuário)
 
 # Agora saiba o home path:
 echo $HOME
-# Retorna: /home3/terr6836
+# Retorna: /home/seu_usuario_hosting (ou similar)
 ```
 
 ---
